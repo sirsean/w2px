@@ -14,6 +14,12 @@
   margin: 0;
 }
 
+.BalanceManager {
+  max-width: 800px;
+  margin: 12px auto;
+  text-align: left;
+}
+
 img.logo {
   width: 640px;
 }

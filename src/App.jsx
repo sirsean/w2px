@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
-import { WagmiConfig } from 'wagmi'
-import { arbitrum, mainnet } from 'viem/chains'
+import { WagmiConfig, useAccount } from 'wagmi'
+import { mainnet } from 'viem/chains'
+import { fetchBalance } from '@wagmi/core'
 
 import './App.css'
 
@@ -35,6 +36,8 @@ createWeb3Modal({
 })
 
 const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+const PXETH_ADDRESS = '0x04C154b66CB340F3Ae24111CC767e0184Ed00Cc6'
+const APXETH_ADDRESS = '0x9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6'
 
 function WalletConnector() {
   return (
@@ -45,6 +48,58 @@ function WalletConnector() {
   )
 }
 
+function BalanceManager() {
+  const { address } = useAccount();
+  const [wethBalance, setWethBalance] = useState(null);
+  const [pxethBalance, setPxethBalance] = useState(null);
+  const [apxethBalance, setApxethBalance] = useState(null);
+  useEffect(() => {
+    if (!address) {
+      return;
+    }
+    fetchBalance({
+      address: address,
+      token: WETH_ADDRESS,
+    }).then(setWethBalance)
+    fetchBalance({
+      address: address,
+      token: PXETH_ADDRESS,
+    }).then(setPxethBalance)
+    fetchBalance({
+      address: address,
+      token: APXETH_ADDRESS,
+    }).then(setApxethBalance)
+  }, [address])
+  if (address) {
+    return (
+      <div className="BalanceManager">
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>WETH</td>
+              <td>{wethBalance?.formatted}</td>
+            </tr>
+            <tr>
+              <td>pxETH</td>
+              <td>{pxethBalance?.formatted}</td>
+            </tr>
+            <tr>
+              <td>apxETH</td>
+              <td>{apxethBalance?.formatted}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
+
 function HomePage() {
   return (
     <>
@@ -52,6 +107,7 @@ function HomePage() {
       <img src="/img/w2px.png" className="logo" alt="w2px logo" />
       <p>Moving from WETH to pxETH should be easy. <em>w2px</em> makes it easy.</p>
       <p>This contract will take your WETH, withdraw it into ETH, and deposit that ETH into Pirex. It's up to you whether you want pxETH back, or autocompound into apxETH.</p>
+      <BalanceManager />
       <ul>
         // TODO: fill out these links
         <li>Github</li>
