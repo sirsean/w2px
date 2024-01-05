@@ -59,6 +59,9 @@ contract WethToPirex is Ownable, ReentrancyGuard {
      * 
      * Transfers WETH from msg.sender to this contract, withdraws it to ETH,
      * and deposits that ETH into Pirex on behalf of the provided receiver.
+     *
+     * If fees are being taken, they are converted to apxETH and sent to the
+     * fee recipient.
      */
     function convert(address receiver, uint256 amount, bool shouldCompound) public nonReentrant returns (uint256 depositedAmount) {
         require(amount > 0, "amount must be greater than 0");
