@@ -5,6 +5,27 @@
   text-align: center;
 }
 
+.WalletConnector {
+  display: flex;
+  justify-content: space-between;
+}
+
+.WalletConnector h1 {
+  margin: 0;
+}
+
 img.logo {
   width: 640px;
+}
+
+p {
+  max-width: 800px;
+  margin: 12px auto;
+  text-align: left;
+}
+
+ul {
+  max-width: 800px;
+  margin: 12px auto;
+  text-align: left;
 }
