@@ -1,6 +1,25 @@
-# Sample Hardhat Project
+# w2px Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This contract will convert WETH into pxETH.
+
+It depends on the WETH contract. It needs to call WETH.withdraw() in order to
+convert WETH into the underlying ETH.
+
+It then deposits that ETH into the Pirex contract, returning pxETH to the original caller. It is up to the caller whether they want to receive pxETH or
+apxETH instead.
+
+There is a small fee for this service. That's why you receive a tiny bit less
+pxETH than the WETH you put in.
+
+## Setup
+
+Hardhat has rules about what version of Node you can use.
+
+```shell
+nvm use
+```
+
+## Usage
 
 Try running some of the following tasks:
 
@@ -9,5 +28,6 @@ npx hardhat help
 npx hardhat test
 REPORT_GAS=true npx hardhat test
 npx hardhat node
+npx hardhat run scripts/deploy.js --network localhost
 npx hardhat run scripts/deploy.js
 ```
