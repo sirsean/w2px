@@ -251,8 +251,7 @@ function HomePage() {
           />
         <hr />
         <ul>
-          // TODO: fill out these links
-          <li>Github</li>
+          <li><a target="_blank" href="https://github.com/sirsean/w2px">Github</a></li>
           <li><a target="_blank" href={`https://etherscan.io/address/${W2PX_ADDRESS}`}>Etherscan</a></li>
         </ul>
       </div>
