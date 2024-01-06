@@ -31,3 +31,9 @@ npx hardhat node
 npx hardhat run scripts/deploy.js --network localhost
 npx hardhat run scripts/deploy.js
 ```
+
+## Verification
+
+```shell
+npx hardhat --network mainnet verify --constructor-args scripts/args.js 0x16DbF28Aa24678eCCe4dB7486b5061B2AF857FD0
+```

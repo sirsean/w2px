@@ -11,7 +11,8 @@ import WETH_ABI from './assets/WETH.json';
 import W2PX_ABI from './assets/WethToPirex.json';
 
 // make sure we're pointed at the right address
-const W2PX_ADDRESS = '0x16DbF28Aa24678eCCe4dB7486b5061B2AF857FD0' // hardhat
+//const W2PX_ADDRESS = '0x16DbF28Aa24678eCCe4dB7486b5061B2AF857FD0' // hardhat
+const W2PX_ADDRESS = '0x16DbF28Aa24678eCCe4dB7486b5061B2AF857FD0' // mainnet
 
 // for local development only
 const hardhat = {
@@ -30,7 +31,8 @@ const hardhat = {
 }
 
 // make sure we're connected to the right chain
-const chains = [hardhat]
+//const chains = [hardhat]
+const chains = [mainnet]
 const projectId = '041ca440a691058adf974d4ac779975a'
 
 const wagmiConfig = defaultWagmiConfig({ chains, projectId })
@@ -45,6 +47,20 @@ createWeb3Modal({
 const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 const PXETH_ADDRESS = '0x04C154b66CB340F3Ae24111CC767e0184Ed00Cc6'
 const APXETH_ADDRESS = '0x9Ba021B0a9b958B5E75cE9f6dff97C7eE52cb3E6'
+
+function bigIntMin(...args) {
+  if (args.length === 0) {
+      throw new TypeError('bigIntMin requires at least one argument.');
+  }
+
+  let minValue = args[0];
+  for (let i = 1; i < args.length; i++) {
+      if (args[i] < minValue) {
+          minValue = args[i];
+      }
+  }
+  return minValue;
+}
 
 function WalletConnector() {
   return (
@@ -139,7 +155,7 @@ function Converter({ wethBalance, wethApproval }) {
       write({ args: [receiver, parseUnits(weth, 18), shouldCompound] });
     }
   }
-  if (!address || wethBalance == null || wethApproval == null || wethApproval < wethBalance.value) {
+  if (!address || wethBalance == null || wethApproval == null || wethApproval == 0 || wethBalance.value == 0) {
     return null;
   }
   return (
@@ -147,7 +163,7 @@ function Converter({ wethBalance, wethApproval }) {
       <h2>Convert your WETH to pxETH</h2>
       {!isLoading && !isSuccess &&
         <form onSubmit={onSubmit}>
-          <input type="text" name="weth" defaultValue={wethBalance?.formatted} />
+          <input type="text" name="weth" defaultValue={formatUnits(bigIntMin(wethApproval, wethBalance?.value), 18)} />
           <span>WETH -&gt;</span>
           <select name="shouldCompound">
             <option value="false">pxETH</option>
@@ -237,7 +253,7 @@ function HomePage() {
         <ul>
           // TODO: fill out these links
           <li>Github</li>
-          <li>Etherscan</li>
+          <li><a target="_blank" href={`https://etherscan.io/address/${W2PX_ADDRESS}`}>Etherscan</a></li>
         </ul>
       </div>
     </>
