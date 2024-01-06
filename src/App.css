@@ -24,6 +24,13 @@ img.logo {
   width: 640px;
 }
 
+@media(max-width: 640px) {
+  img.logo {
+    height: auto;
+    width: 100%;
+  }
+}
+
 button {
   font-family: NanumGothicCoding, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-size: 20px;
