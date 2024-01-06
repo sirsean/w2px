@@ -14,7 +14,7 @@
   margin: 0;
 }
 
-.BalanceManager {
+.content {
   max-width: 800px;
   margin: 12px auto;
   text-align: left;
@@ -22,16 +22,4 @@
 
 img.logo {
   width: 640px;
-}
-
-p {
-  max-width: 800px;
-  margin: 12px auto;
-  text-align: left;
-}
-
-ul {
-  max-width: 800px;
-  margin: 12px auto;
-  text-align: left;
 }

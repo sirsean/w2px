@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
-import { WagmiConfig, useAccount } from 'wagmi'
+import { WagmiConfig, useAccount, useContractRead, useContractWrite, useWaitForTransaction } from 'wagmi'
+import { formatUnits, parseUnits } from 'viem';
 import { mainnet } from 'viem/chains'
 import { fetchBalance } from '@wagmi/core'
 
 import './App.css'
+import WETH_ABI from './assets/WETH.json';
+
+// make sure we're pointed at the right address
+const W2PX_ADDRESS = '0x16DbF28Aa24678eCCe4dB7486b5061B2AF857FD0' // hardhat
 
 // for local development only
 const hardhat = {
@@ -23,8 +28,9 @@ const hardhat = {
   },
 }
 
+// make sure we're connected to the right chain
+const chains = [hardhat]
 const projectId = '041ca440a691058adf974d4ac779975a'
-const chains = [mainnet]
 
 const wagmiConfig = defaultWagmiConfig({ chains, projectId })
 
@@ -100,19 +106,79 @@ function BalanceManager() {
   }
 }
 
+function ApprovalManager() {
+  const { address } = useAccount();
+  const [wethBalance, setWethBalance] = useState(null);
+  const [ wethApproval, setWethApproval ] = useState(null);
+  useEffect(() => {
+    if (!address) {
+      return;
+    }
+    fetchBalance({
+      address: address,
+      token: WETH_ADDRESS,
+    }).then(setWethBalance)
+  }, [address])
+  useContractRead({
+    address: WETH_ADDRESS,
+    abi: WETH_ABI,
+    functionName: 'allowance',
+    args: [address, W2PX_ADDRESS],
+    watch: true,
+    onSuccess(data) {
+      setWethApproval(data);
+    },
+    onError(error) {
+      console.log(error);
+    },
+  }, [address])
+  const { data: tx, isLoading, isSuccess, write } = useContractWrite({
+    address: WETH_ADDRESS,
+    abi: WETH_ABI,
+    functionName: 'approve',
+    args: [W2PX_ADDRESS, BigInt(2 ** 255 - 1)], // pretty much max int
+  })
+  const { data: receipt } = useWaitForTransaction({
+    hash: tx?.hash,
+    onSuccess(data) {
+      console.log(data);
+    },
+  })
+  if (address && wethApproval != null && wethBalance != null && wethApproval < wethBalance.value) {
+    return (
+      <div className="ApprovalManager">
+        <p>In order for this to work, you must approve the contract to take your WETH.</p>
+        <p>Current allowance: {formatUnits(wethApproval, 18)} WETH</p>
+        {!isLoading && !isSuccess &&
+          <button disabled={!write} onClick={() => write?.()}>Approve WETH</button>}
+        {receipt &&
+          <>
+            <a target="_blank" href={`https://etherscan.io/tx/${receipt.transactionHash}`}>View on Etherscan</a>
+          </>}
+      </div>
+    );
+  }
+}
+
 function HomePage() {
   return (
     <>
       <WalletConnector />
       <img src="/img/w2px.png" className="logo" alt="w2px logo" />
-      <p>Moving from WETH to pxETH should be easy. <em>w2px</em> makes it easy.</p>
-      <p>This contract will take your WETH, withdraw it into ETH, and deposit that ETH into Pirex. It's up to you whether you want pxETH back, or autocompound into apxETH.</p>
-      <BalanceManager />
-      <ul>
-        // TODO: fill out these links
-        <li>Github</li>
-        <li>Etherscan</li>
-      </ul>
+      <div className="content">
+        <p>Moving from WETH to pxETH should be easy. I mean, it's already pretty easy, two transactions. <em>w2px</em> does it in one, which is way easier.</p>
+        <p>(WETH to pxETH ... or w2px for short. Get it?)</p>
+        <p>And if you want to use it from a smart contract so that you can auto-convert WETH into pxETH to send along to its ultimate destination, well, that's also easy.</p>
+        <p>This contract will take your WETH, withdraw it into ETH, and deposit that ETH into Pirex. It's up to you whether you want pxETH back, or autocompound into apxETH.</p>
+        <BalanceManager />
+        <ApprovalManager />
+        <hr />
+        <ul>
+          // TODO: fill out these links
+          <li>Github</li>
+          <li>Etherscan</li>
+        </ul>
+      </div>
     </>
   )
 }

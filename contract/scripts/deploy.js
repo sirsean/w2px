@@ -5,24 +5,26 @@
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
 const hre = require("hardhat");
+const deployArgs = require("./args.js");
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  console.log(deployArgs);
+  const wethToPirex = await hre.ethers.deployContract("WethToPirex", deployArgs, {});
 
-  const lockedAmount = hre.ethers.parseEther("0.001");
+  await wethToPirex.waitForDeployment();
 
-  const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  console.log(`Contract deployed to: ${wethToPirex.target}`);
 
-  await lock.waitForDeployment();
-
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  /*
+  // skip this because etherscan takes a minute to be ready to verify
+  if (hre.network.name === "mainnet") {
+    console.log('verifying contract');
+    await hre.run("verify:verify", {
+      address: flappers.target,
+      constructorArguments: deployArgs,
+    });
+  }
+  */
 }
 
 // We recommend this pattern to be able to use async/await everywhere
