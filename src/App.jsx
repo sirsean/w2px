@@ -104,29 +104,32 @@ function BalanceManager({ wethBalance, pxethBalance, apxethBalance }) {
 
 function ApprovalManager({ wethBalance, wethApproval }) {
   const { address } = useAccount();
-  const { data: tx, isLoading, isSuccess, write } = useContractWrite({
+  const { data: tx, isLoading: isSigning, write } = useContractWrite({
     address: WETH_ADDRESS,
     abi: WETH_ABI,
     functionName: 'approve',
     args: [W2PX_ADDRESS, BigInt(2 ** 255 - 1)], // pretty much max int
   })
-  const { data: receipt } = useWaitForTransaction({
+  const { data: receipt, isLoading: isConfirming } = useWaitForTransaction({
     hash: tx?.hash,
     onSuccess(data) {
       console.log(data);
     },
   })
-  if (address && wethApproval != null && wethBalance != null && wethApproval < wethBalance.value) {
+  const needsMoreApproval = wethApproval != null && wethBalance != null && wethApproval < wethBalance.value;
+  if (address && wethApproval != null && wethBalance != null) {
     return (
       <div className="ApprovalManager">
         <p>In order for this to work, you must approve the contract to take your WETH.</p>
         <p>Current allowance: {formatUnits(wethApproval, 18)} WETH</p>
-        {!isLoading && !isSuccess &&
+        {isSigning && <p>Signing...</p>}
+        {isConfirming && <p>Confirming...</p>}
+        {needsMoreApproval && !isSigning && !isConfirming &&
           <button disabled={!write} onClick={() => write?.()}>Approve WETH</button>}
         {receipt &&
-          <>
+          <p>
             <a target="_blank" href={`https://etherscan.io/tx/${receipt.transactionHash}`}>View on Etherscan</a>
-          </>}
+          </p>}
       </div>
     );
   }
@@ -134,12 +137,12 @@ function ApprovalManager({ wethBalance, wethApproval }) {
 
 function Converter({ wethBalance, wethApproval }) {
   const { address } = useAccount();
-  const { data: tx, isLoading, isSuccess, write } = useContractWrite({
+  const { data: tx, isLoading: isSigning, write } = useContractWrite({
     address: W2PX_ADDRESS,
     abi: W2PX_ABI,
     functionName: 'convert',
   })
-  const { data: receipt } = useWaitForTransaction({
+  const { data: receipt, isLoading: isConfirming } = useWaitForTransaction({
     hash: tx?.hash,
     onSuccess(data) {
       console.log(data);
@@ -155,13 +158,13 @@ function Converter({ wethBalance, wethApproval }) {
       write({ args: [receiver, parseUnits(weth, 18), shouldCompound] });
     }
   }
-  if (!address || wethBalance == null || wethApproval == null || wethApproval == 0 || wethBalance.value == 0) {
+  if (!receipt && !isSigning && !isConfirming && (!address || wethBalance == null || wethApproval == null || wethApproval == 0 || wethBalance.value == 0)) {
     return null;
   }
   return (
     <div className="Converter">
       <h2>Convert your WETH to pxETH</h2>
-      {!isLoading && !isSuccess &&
+      {!isSigning && !isConfirming && (wethApproval != null && wethApproval != 0) &&
         <form onSubmit={onSubmit}>
           <input type="text" name="weth" defaultValue={formatUnits(bigIntMin(wethApproval, wethBalance?.value), 18)} />
           <span>WETH -&gt;</span>
@@ -174,11 +177,12 @@ function Converter({ wethBalance, wethApproval }) {
           Receiver:
           <input type="text" className="address" name="receiver" defaultValue={address} />
         </form>}
-      {isLoading && <p>Signing...</p>}
+      {isSigning && <p>Signing...</p>}
+      {isConfirming && <p>Confirming...</p>}
       {receipt &&
-        <>
+        <p>
           <a target="_blank" href={`https://etherscan.io/tx/${receipt.transactionHash}`}>View on Etherscan</a>
-        </>}
+        </p>}
     </div>
   )
 }
