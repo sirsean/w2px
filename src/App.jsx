@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
-import { WagmiConfig, useAccount, useContractRead, useContractWrite, useWaitForTransaction } from 'wagmi'
+import { WagmiConfig, useAccount, useBalance, useContractRead, useContractWrite, useWaitForTransaction } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem';
 import { mainnet } from 'viem/chains'
-import { fetchBalance } from '@wagmi/core'
 
 import './App.css'
 import WETH_ABI from './assets/WETH.json';
@@ -189,22 +188,32 @@ function Converter({ wethBalance, wethApproval }) {
 
 function DataFetcher({ setWethBalance, setPxethBalance, setApxethBalance, setWethApproval }) {
   const { address } = useAccount();
-  useEffect(() => {
-    if (!address) {
-      return;
-    }
-    fetchBalance({
-      address: address,
-      token: WETH_ADDRESS,
-    }).then(setWethBalance)
-    fetchBalance({
-      address: address,
-      token: PXETH_ADDRESS,
-    }).then(setPxethBalance)
-    fetchBalance({
-      address: address,
-      token: APXETH_ADDRESS,
-    }).then(setApxethBalance)
+  useBalance({
+    address: address,
+    token: WETH_ADDRESS,
+    watch: true,
+    onSuccess: setWethBalance,
+    onError(error) {
+      console.log(error);
+    },
+  }, [address])
+  useBalance({
+    address: address,
+    token: PXETH_ADDRESS,
+    watch: true,
+    onSuccess: setPxethBalance,
+    onError(error) {
+      console.log(error);
+    },
+  }, [address])
+  useBalance({
+    address: address,
+    token: APXETH_ADDRESS,
+    watch: true,
+    onSuccess: setApxethBalance,
+    onError(error) {
+      console.log(error);
+    },
   }, [address])
   useContractRead({
     address: WETH_ADDRESS,
