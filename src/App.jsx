@@ -116,11 +116,11 @@ function ApprovalManager({ wethBalance, wethApproval }) {
     },
   })
   const needsMoreApproval = wethApproval != null && wethBalance != null && wethApproval < wethBalance.value;
-  if (address && wethApproval != null && wethBalance != null) {
+  if (receipt || (address && wethApproval != null && wethBalance != null)) {
     return (
       <div className="ApprovalManager">
-        <p>In order for this to work, you must approve the contract to take your WETH.</p>
-        <p>Current allowance: {formatUnits(wethApproval, 18)} WETH</p>
+        {needsMoreApproval && <p>In order for this to work, you must approve the contract to take your WETH.</p>}
+        {needsMoreApproval && <p>Current allowance: {formatUnits(wethApproval, 18)} WETH</p>}
         {isSigning && <p>Signing...</p>}
         {isConfirming && <p>Confirming...</p>}
         {needsMoreApproval && !isSigning && !isConfirming &&
