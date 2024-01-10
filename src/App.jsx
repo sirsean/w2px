@@ -186,7 +186,7 @@ function Converter({ wethBalance, wethApproval }) {
   )
 }
 
-function DataFetcher({ setWethBalance, setPxethBalance, setApxethBalance, setWethApproval }) {
+function DataFetcher({ setWethBalance, setPxethBalance, setApxethBalance, setWethApproval, setFeeBasisPoints }) {
   const { address } = useAccount();
   useBalance({
     address: address,
@@ -226,6 +226,15 @@ function DataFetcher({ setWethBalance, setPxethBalance, setApxethBalance, setWet
       console.log(error);
     },
   }, [address])
+  useContractRead({
+    address: W2PX_ADDRESS,
+    abi: W2PX_ABI,
+    functionName: 'fee',
+    onSuccess: setFeeBasisPoints,
+    onError(error) {
+      console.log(error);
+    },
+  })
   return null;
 }
 
@@ -234,6 +243,7 @@ function HomePage() {
   const [pxethBalance, setPxethBalance] = useState(null);
   const [apxethBalance, setApxethBalance] = useState(null);
   const [wethApproval, setWethApproval] = useState(null);
+  const [feeBasisPoints, setFeeBasisPoints] = useState(null);
   return (
     <>
       <DataFetcher
@@ -241,6 +251,7 @@ function HomePage() {
         setPxethBalance={setPxethBalance}
         setApxethBalance={setApxethBalance}
         setWethApproval={setWethApproval}
+        setFeeBasisPoints={setFeeBasisPoints}
         />
       <WalletConnector />
       <img src="/img/w2px.png" className="logo" alt="w2px logo" />
@@ -248,7 +259,7 @@ function HomePage() {
         <p>Moving from WETH to pxETH should be easy. I mean, it's already pretty easy, two transactions. <em>w2px</em> does it in one, which is way easier.</p>
         <p>(WETH to pxETH ... or w2px for short. Get it?)</p>
         <p>And if you want to use it from a smart contract so that you can auto-convert WETH into pxETH to send along to its ultimate destination, well, that's also easy.</p>
-        <p>This contract will take your WETH, withdraw it into ETH, and deposit that ETH into Pirex. It's up to you whether you want pxETH back, or autocompound into apxETH.</p>
+        <p>This contract will take your WETH, withdraw it into ETH, and deposit that ETH into Pirex. It's up to you whether you want pxETH back, or autocompound into apxETH. It takes a small fee {feeBasisPoints && `(${Number(feeBasisPoints) / 100}%)`} for its trouble; the contract deposits its fee into apxETH.</p>
         <BalanceManager
           wethBalance={wethBalance}
           pxethBalance={pxethBalance}
